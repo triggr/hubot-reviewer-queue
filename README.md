@@ -1,4 +1,4 @@
-# hubot-review-round-robin
+# hubot-reviewer-queue
 Hubot assigns a reviews in a round robin fashion.
 
 Based on https://github.com/sakatam/hubot-reviewer-lotto.
