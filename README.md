@@ -18,7 +18,7 @@ members of this organization are candidate reviewers.
 
 # installation
 * install this npm package to your hubot repo
-    * `npm i --save hubot-reviewer-lotto`
+    * `npm i --save hubot-reviewer-queue`
 * add `"hubot-reviewer-lotto"` to your `external-scripts.json`
 * set the following env vars on heroku
   <table>
@@ -57,7 +57,7 @@ on github
 
 # get involved
 
-1. fork it ( https://github.com/sakatam/hubot-reviewer-lotto/fork )
+1. fork it ( https://github.com/triggr/hubot-reviewer-queue/fork )
 2. create your feature branch (`git checkout -b my-new-feature`)
 3. commit your changes (`git commit -am 'Add some feature'`)
 4. push to the branch (`git push origin my-new-feature`)
