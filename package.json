@@ -1,0 +1,32 @@
+{
+  "name": "hubot-reviewer-queue",
+  "version": "0.1.0",
+  "author": "servercobra",
+  "description": "A round robin reviewer queue for Hubot",
+  "keywords": [
+    "hubot",
+    "hubot-scripts"
+  ],
+  "license": "MIT",
+  "main": "index.coffee",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/pcsforeducation/hubot-reviewer-queue.git"
+  },
+  "dependencies": {
+    "async": "~0.6.2",
+    "coffee-script": "~1.7",
+    "github": "~0.1.15",
+    "underscore": "~1.6.0",
+    "weighted": "^0.2.2"
+  },
+  "bugs": {
+    "url": "https://github.com/pcsforeducation/hubot-reviewer-queue/issues"
+  },
+  "devDependencies": {
+    "coffee-script": "~1.7.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
