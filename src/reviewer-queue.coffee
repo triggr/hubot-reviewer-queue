@@ -58,7 +58,7 @@ module.exports = (robot) ->
     pr   = msg.match[2]
     polite = msg.match[3]?
     prParams =
-      user: ghOrg
+      owner: ghOrg
       repo: repo
       number: pr
 
