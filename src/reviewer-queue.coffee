@@ -131,9 +131,14 @@ module.exports = (robot) ->
         {reviewer} = ctx
         params = _.extend { assignee: reviewer.login }, prParams
         gh.issues.edit params, (err, res) -> cb err, ctx
-        reviewerParams = _.extend { reviewers: [reviewer.login] }, prParams
-        gh.pullRequests.createReviewRequest reviewerParams, (err, res) -> cb err, ctx
         robot.logger.debug 'Would have assigned ' + reviewer.login
+
+      (ctx, cb) ->
+        # request a review
+        {reviewer} = ctx
+        params = _.extend { reviewers: [reviewer.login] }, prParams
+        gh.pullRequests.createReviewRequest params, (err, res) -> cb err, ctx
+        robot.logger.debug 'Would have requested a review from ' + reviewer.login
 
       (ctx, cb) ->
         {reviewer, issue} = ctx
