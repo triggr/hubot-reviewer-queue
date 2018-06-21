@@ -16,7 +16,6 @@
 //   pcsforeducation
 
 const _ = require('underscore');
-const async = require('async');
 const GitHubApi = require('github');
 const weighted = require('weighted');
 
@@ -61,10 +60,7 @@ HUBOT_GITHUB_REVIEWER_TEAM: ${ghReviwerTeam}\
     return msg.reply(msgs.join('\n'));
   });
 
-  return robot.respond(/reviewer for ([\w-\.]+) (\d+)( polite)?$/i, function(msg) {
-    const repo = msg.match[1];
-    const pr = msg.match[2];
-    const polite = msg.match[3] != null;
+  let assignReviewer = async function(repo, pr) {
     const prParams = {
       owner: ghOrg,
       repo,
@@ -86,116 +82,84 @@ HUBOT_GITHUB_REVIEWER_TEAM: ${ghReviwerTeam}\
       };
     }
 
-    return async.waterfall(
-      [
-        function(cb) {
-          // get team members
-          const params = {
-            id: ghReviwerTeam,
-            per_page: 100,
-          };
-          return gh.orgs.getTeamMembers(params, function(err, res) {
-            if (err != null) {
-              return cb(`error on getting team members: ${err.toString()}`);
-            }
-            return cb(null, {reviewers: res});
-          });
-        },
+    let [reviewers, issue] = await Promise.all([
+      gh.orgs.getTeamMembers({
+        id: ghReviwerTeam,
+        per_page: 100,
+      }),
+      await gh.pullRequests.get(prParams),
+    ]);
+    let creator = issue.user;
+    let assignee = issue.assignee;
 
-        (ctx, cb) =>
-          // check if pull req exists
-          gh.pullRequests.get(prParams, function(err, res) {
-            if (err != null) {
-              return cb(`error on getting pull request: ${err.toString()}`);
-            }
-            ctx['issue'] = res;
-            ctx['creator'] = res.user;
-            ctx['assignee'] = res.assignee;
-            return cb(null, ctx);
-          }),
-        function(ctx, cb) {
-          let {reviewers, creator, assignee} = ctx;
-          const stats = robot.brain.get(STATS_KEY);
+    const stats = robot.brain.get(STATS_KEY) || {};
 
-          // (re)initialize stats if necessary
-          if (!stats['reviewers'] || stats['reviewers'].length !== reviewers.length) {
-            robot.logger.debug('(re)initializing stats');
-            stats['reviewers'] = reviewers;
-          }
+    // (re)initialize stats if necessary
+    if (!stats['reviewers'] || stats['reviewers'].length !== reviewers.length) {
+      robot.logger.debug('(re)initializing stats');
+      stats['reviewers'] = reviewers;
+    }
 
-          // pick reviewer
-          reviewers = stats['reviewers'];
-          reviewers = reviewers.filter((r) => r.login !== creator.login);
+    // pick reviewer
+    reviewers = stats['reviewers'];
+    reviewers = reviewers.filter((r) => r.login !== creator.login);
 
-          // exclude current assignee from reviewer candidates
-          if (assignee != null) {
-            reviewers = reviewers.filter((r) => r.login !== assignee.login);
-          }
+    // exclude current assignee from reviewer candidates
+    if (assignee != null) {
+      reviewers = reviewers.filter((r) => r.login !== assignee.login);
+    }
 
-          // pick first reviewer from the queue
-          const newReviewer = reviewers[0];
-          robot.logger.info(`Choose from queue: ${newReviewer.login}`);
-          let originalIndex = -1;
-          for (let i = 0; i < stats['reviewers'].length; i++) {
-            const r = stats['reviewers'][i];
-            if (r.login === newReviewer.login) {
-              originalIndex = i;
-            }
-          }
-
-          // move reviewer to the end
-          stats['reviewers'].splice(originalIndex, 1);
-          stats['reviewers'].push(newReviewer);
-
-          // save reviewer queue back to robot brain
-          robot.brain.set(STATS_KEY, stats);
-
-          ctx['reviewer'] = newReviewer;
-          return cb(null, ctx);
-        },
-
-        function(ctx, cb) {
-          // change assignee
-          const {reviewer} = ctx;
-          const params = _.extend({assignee: reviewer.login}, prParams);
-          gh.issues.edit(params, (err, res) => cb(err, ctx));
-          return robot.logger.debug(`Would have assigned ${reviewer.login}`);
-        },
-
-        function(ctx, cb) {
-          // request a review
-          const {reviewer} = ctx;
-          const params = _.extend({reviewers: [reviewer.login]}, prParams);
-          gh.pullRequests.createReviewRequest(params, (err, res) => cb(err, ctx));
-          return robot.logger.debug(`Would have requested a review from ${reviewer.login}`);
-        },
-
-        function(ctx, cb) {
-          const {reviewer, issue} = ctx;
-          msg.reply(`${reviewer.login} has been assigned for ${issue.html_url} as a reviewer`);
-          if (ghWithAvatar) {
-            let url = reviewer.avatar_url;
-            url = `${url}t=${Date.now()}`; // cache buster
-            url = url.replace(/(#.*|$)/, '#.png'); // hipchat needs image-ish url to display inline image
-            msg.send(url);
-          }
-
-          // update stats
-          const stats = robot.brain.get(STATS_KEY) || {};
-          if (!stats[reviewer.login]) {
-            stats[reviewer.login] = 0;
-          }
-          stats[reviewer.login]++;
-          robot.brain.set(STATS_KEY, stats);
-
-          return cb(null, ctx);
-        },
-      ],
-      function(err, res) {
-        if (err != null) {
-          return msg.reply(`an error occured.\n${err}`);
-        }
+    // pick first reviewer from the queue
+    const newReviewer = reviewers[0];
+    robot.logger.info(`Choose from queue: ${newReviewer.login}`);
+    let originalIndex = -1;
+    for (let i = 0; i < stats['reviewers'].length; i++) {
+      const r = stats['reviewers'][i];
+      if (r.login === newReviewer.login) {
+        originalIndex = i;
       }
-    );
+    }
+
+    // move reviewer to the end
+    stats['reviewers'].splice(originalIndex, 1);
+    stats['reviewers'].push(newReviewer);
+
+    // save reviewer queue back to robot brain
+    robot.brain.set(STATS_KEY, stats);
+
+    let reviewer = newReviewer;
+
+    // change assignee
+    await gh.issues.edit(_.extend({assignee: reviewer.login}, prParams));
+    robot.logger.info(`Would have assigned ${reviewer.login}`);
+
+    // request a review
+    await gh.pullRequests.createReviewRequest(_.extend({reviewers: [reviewer.login]}, prParams));
+    robot.logger.debug(`Would have requested a review from ${reviewer.login}`);
+
+    msg.reply(`${reviewer.login} has been assigned for ${issue.html_url} as a reviewer`);
+    if (ghWithAvatar) {
+      let url = reviewer.avatar_url;
+      url = `${url}t=${Date.now()}`; // cache buster
+      url = url.replace(/(#.*|$)/, '#.png'); // hipchat needs image-ish url to display inline image
+      msg.send(url);
+    }
+
+    // update stats
+    if (!stats[reviewer.login]) {
+      stats[reviewer.login] = 0;
+    }
+    stats[reviewer.login]++;
+    robot.brain.set(STATS_KEY, stats);
+  };
+
+  return robot.respond(/reviewer for ([\w-\.]+) (\d+)?$/i, async (msg) => {
+    const repo = msg.match[1];
+    const pr = msg.match[2];
+    try {
+      await assignReviewer(repo, pr);
+    } catch (e) {
+      msg.reply(`an error occured.\n${e}`);
+    }
   });
 };
