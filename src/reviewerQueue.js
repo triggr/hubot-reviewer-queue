@@ -17,7 +17,6 @@
 
 const _ = require('underscore');
 const GitHubApi = require('github');
-const weighted = require('weighted');
 const {fetchTravelEvents} = require('./lib/googleCalendar');
 
 module.exports = function(robot) {
@@ -30,7 +29,7 @@ module.exports = function(robot) {
 
   const STATS_KEY = 'reviewer-round-robin';
 
-  if (ghToken == null || ghOrg == null || ghReviwerTeam == null || ghReviewerEmailMap == null) {
+  if (ghToken === null || ghOrg === null || ghReviwerTeam === null || ghReviewerEmailMap === null) {
     return robot.logger.error(`\
 reviewer-lottery is not loaded due to missing configuration!
 ${__filename}
@@ -51,11 +50,11 @@ HUBOT_GITHUB_REVIEWER_MAIL_MAP: ${ghReviewerEmailMap}\
     const stats = robot.brain.get(STATS_KEY);
     const msgs = ['login, percentage, num assigned'];
     let total = 0;
-    for (var login in stats) {
+    for (let login in stats) {
       count = stats[login];
       total += count;
     }
-    for (login in stats) {
+    for (let login in stats) {
       count = stats[login];
       const percentage = Math.floor(count * 100.0 / total);
       msgs.push(`${login}, ${percentage}%, ${count}`);
@@ -63,7 +62,9 @@ HUBOT_GITHUB_REVIEWER_MAIL_MAP: ${ghReviewerEmailMap}\
     return msg.reply(msgs.join('\n'));
   });
 
-  let assignReviewer = async function(repo, pr) {
+  let assignReviewer = async function(msg) {
+    const repo = msg.match[1];
+    const pr = msg.match[2];
     const prParams = {
       owner: ghOrg,
       repo,
@@ -106,7 +107,7 @@ HUBOT_GITHUB_REVIEWER_MAIL_MAP: ${ghReviewerEmailMap}\
 
     let reviewersOnVacation = {};
     let reviewerEmailMap = JSON.parse(ghReviewerEmailMap);
-    for (event of travelEvents) {
+    for (let event of travelEvents) {
       let reviewerLogin = reviewerEmailMap[event.creator.email];
       reviewersOnVacation[reviewerLogin] = true;
     }
@@ -116,7 +117,7 @@ HUBOT_GITHUB_REVIEWER_MAIL_MAP: ${ghReviewerEmailMap}\
     reviewers = reviewers.filter((r) => r.login !== creator.login && !reviewersOnVacation[r.login]);
 
     // exclude current assignee from reviewer candidates
-    if (assignee != null) {
+    if (assignee !== null) {
       reviewers = reviewers.filter((r) => r.login !== assignee.login);
     }
 
@@ -165,10 +166,8 @@ HUBOT_GITHUB_REVIEWER_MAIL_MAP: ${ghReviewerEmailMap}\
   };
 
   return robot.respond(/reviewer for ([\w-\.]+) (\d+)?$/i, async (msg) => {
-    const repo = msg.match[1];
-    const pr = msg.match[2];
     try {
-      await assignReviewer(repo, pr);
+      await assignReviewer(msg);
     } catch (e) {
       robot.logger.error(e);
       msg.reply(`an error occured.\n${e}`);
