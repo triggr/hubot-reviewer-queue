@@ -26,6 +26,9 @@ module.exports = {
 
 // Authenticate with Google OAuth 2.0 so we request events on the Triggr Calendar.
 function getAuth(robot, done) {
+  // Refresh token is created by generating an authUrl and authorizing
+  // as a user under the Triggr organization. If we ever need to regenerate a refresh token,
+  // follow steps here: https://developers.google.com/calendar/quickstart/nodejs
   const refreshToken = process.env.GOOGLE_REFRESH_TOKEN;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
   const clientId = process.env.GOOGLE_CLIENT_ID;
@@ -74,6 +77,7 @@ function fetchEvents(auth, done) {
       calendarId: process.env.GOOGLE_TRAVEL_CALENDAR_ID,
       // Query for a large number of events to guarantee we don't miss any happening now.
       maxResults: 50,
+      // Expand recurring events into individual events so we can use the `orderBy` field.
       singleEvents: true,
       orderBy: 'startTime',
       timeZone: 'UTC', // Local timezone on deploy machine
