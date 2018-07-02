@@ -1,3 +1,5 @@
+const path = require('path');
+
 module.exports = (robot) => {
-  robot.loadFile('./src/reviewerQueue.js');
+  robot.loadFile(path.resolve(__dirname, 'src'), 'reviewerQueue.js');
 };

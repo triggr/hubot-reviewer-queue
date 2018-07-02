@@ -94,6 +94,7 @@ HUBOT_GITHUB_REVIEWER_MAIL_MAP: ${ghReviewerEmailMap}\
       gh.pullRequests.get(prParams),
       fetchTravelEvents(robot),
     ]);
+    robot.logger.info(`Fetched ${travelEvents.length} travel events`);
     let creator = issue.user;
     let assignee = issue.assignee;
 
