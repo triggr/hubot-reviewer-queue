@@ -18,23 +18,26 @@
 const _ = require('underscore');
 const GitHubApi = require('github');
 const weighted = require('weighted');
+const {fetchTravelEvents} = require('./lib/googleCalendar');
 
 module.exports = function(robot) {
   const ghToken = process.env.HUBOT_GITHUB_TOKEN;
   const ghOrg = process.env.HUBOT_GITHUB_ORG;
   const ghReviwerTeam = process.env.HUBOT_GITHUB_REVIEWER_TEAM;
+  const ghReviewerEmailMap = process.env.HUBOT_GITHUB_REVIEWER_EMAIL_MAP;
   const ghWithAvatar = ['1', 'true'].includes(process.env.HUBOT_GITHUB_WITH_AVATAR);
   const debug = ['1', 'true'].includes(process.env.HUBOT_REVIEWER_LOTTO_DEBUG);
 
   const STATS_KEY = 'reviewer-round-robin';
 
-  if (ghToken == null || ghOrg == null || ghReviwerTeam == null) {
+  if (ghToken == null || ghOrg == null || ghReviwerTeam == null || ghReviewerEmailMap == null) {
     return robot.logger.error(`\
 reviewer-lottery is not loaded due to missing configuration!
 ${__filename}
 HUBOT_GITHUB_TOKEN: ${ghToken}
 HUBOT_GITHUB_ORG: ${ghOrg}
-HUBOT_GITHUB_REVIEWER_TEAM: ${ghReviwerTeam}\
+HUBOT_GITHUB_REVIEWER_TEAM: ${ghReviwerTeam}
+HUBOT_GITHUB_REVIEWER_MAIL_MAP: ${ghReviewerEmailMap}\
 `);
   }
 
@@ -82,12 +85,13 @@ HUBOT_GITHUB_REVIEWER_TEAM: ${ghReviwerTeam}\
       };
     }
 
-    let [reviewers, issue] = await Promise.all([
+    let [reviewers, issue, travelEvents] = await Promise.all([
       gh.orgs.getTeamMembers({
         id: ghReviwerTeam,
         per_page: 100,
       }),
-      await gh.pullRequests.get(prParams),
+      gh.pullRequests.get(prParams),
+      fetchTravelEvents(robot),
     ]);
     let creator = issue.user;
     let assignee = issue.assignee;
@@ -100,9 +104,16 @@ HUBOT_GITHUB_REVIEWER_TEAM: ${ghReviwerTeam}\
       stats['reviewers'] = reviewers;
     }
 
+    let reviewersOnVacation = {};
+    let reviewerEmailMap = JSON.parse(ghReviewerEmailMap);
+    for (event of travelEvents) {
+      let reviewerLogin = reviewerEmailMap[event.creator.email];
+      reviewersOnVacation[reviewerLogin] = true;
+    }
+
     // pick reviewer
     reviewers = stats['reviewers'];
-    reviewers = reviewers.filter((r) => r.login !== creator.login);
+    reviewers = reviewers.filter((r) => r.login !== creator.login && !reviewersOnVacation[r.login]);
 
     // exclude current assignee from reviewer candidates
     if (assignee != null) {
@@ -159,6 +170,7 @@ HUBOT_GITHUB_REVIEWER_TEAM: ${ghReviwerTeam}\
     try {
       await assignReviewer(repo, pr);
     } catch (e) {
+      robot.logger.error(e);
       msg.reply(`an error occured.\n${e}`);
     }
   });
