@@ -15,7 +15,7 @@
 //   sakatam
 //   pcsforeducation
 
-const _ = require('underscore');
+const _ = require('lodash');
 const GitHubApi = require('github');
 const {fetchTravelEvents} = require('./lib/googleCalendar');
 
@@ -100,7 +100,7 @@ HUBOT_GITHUB_REVIEWER_MAIL_MAP: ${ghReviewerEmailMap}\
     const stats = robot.brain.get(STATS_KEY) || {};
 
     // (re)initialize stats if necessary
-    if (!stats['reviewers'] || stats['reviewers'].length !== reviewers.length) {
+    if (!stats['reviewers'] || !_.isEqual(stats['reviewers'], reviewers)) {
       robot.logger.debug('(re)initializing stats');
       stats['reviewers'] = reviewers;
     }

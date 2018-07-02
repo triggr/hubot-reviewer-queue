@@ -16,7 +16,7 @@
   "dependencies": {
     "github": "7.2.0",
     "googleapis": "27.0.0",
-    "underscore": "1.6.0"
+    "lodash": "4.17.5"
   },
   "devDependencies": {
     "eslint": "4.1.1",
