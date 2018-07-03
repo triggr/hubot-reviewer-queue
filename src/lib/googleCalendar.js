@@ -40,10 +40,11 @@ function getAuth(robot, done) {
   const oAuth2Client = new google.auth.OAuth2(clientId, clientSecret, redirectUri);
   oAuth2Client.setCredentials({refresh_token: refreshToken});
   let authParams = robot.brain.get(AUTH_KEY) || {};
+  let now = new Date();
   // Refresh token is a permanent credential. Access token is a temporary credential.
   // If we have not recently requested an access token, use the refresh token to request
   // a new access token.
-  if (!authParams.expiry_date || authParams.expiry_date < Date.now().getTime()) {
+  if (!authParams.expiry_date || authParams.expiry_date < now.getTime()) {
     oAuth2Client.refreshAccessToken((err, data) => {
       if (err) {
         done(err);
