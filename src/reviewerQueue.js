@@ -100,8 +100,11 @@ HUBOT_GITHUB_REVIEWER_MAIL_MAP: ${ghReviewerEmailMap}\
 
     const stats = robot.brain.get(STATS_KEY) || {};
 
-    // (re)initialize stats if necessary
-    if (!stats['reviewers'] || !_.isEqual(stats['reviewers'], reviewers)) {
+    // (re)initialize stats if reviewers is empty or the members have changed.
+    if (
+      !stats['reviewers'] ||
+      !_.isEqual(_.sortBy(stats['reviewers'], 'login'), _.sortBy(reviewers, 'login'))
+    ) {
       robot.logger.debug('(re)initializing stats');
       stats['reviewers'] = reviewers;
     }
