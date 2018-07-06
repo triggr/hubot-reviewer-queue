@@ -100,10 +100,13 @@ HUBOT_GITHUB_REVIEWER_MAIL_MAP: ${ghReviewerEmailMap}\
 
     const stats = robot.brain.get(STATS_KEY) || {};
 
-    // (re)initialize stats if necessary
-    if (!stats['reviewers'] || !_.isEqual(stats['reviewers'], reviewers)) {
+    // (re)initialize stats if reviewers is empty or the members have changed.
+    if (
+      !stats.reviewers ||
+      !_.isEqual(_.map(stats.reviewers, 'login').sort(), _.map(reviewers, 'login').sort())
+    ) {
       robot.logger.debug('(re)initializing stats');
-      stats['reviewers'] = reviewers;
+      stats.reviewers = reviewers;
     }
 
     let reviewersOnVacation = {};
@@ -114,7 +117,7 @@ HUBOT_GITHUB_REVIEWER_MAIL_MAP: ${ghReviewerEmailMap}\
     }
 
     // pick reviewer
-    reviewers = stats['reviewers'];
+    reviewers = stats.reviewers;
     reviewers = reviewers.filter((r) => r.login !== creator.login && !reviewersOnVacation[r.login]);
 
     // exclude current assignee from reviewer candidates
