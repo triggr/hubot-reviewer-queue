@@ -19,7 +19,7 @@ members of this organization are candidate reviewers.
 # installation
 * install this npm package to your hubot repo
     * `npm i --save hubot-reviewer-queue`
-* add `"hubot-reviewer-lotto"` to your `external-scripts.json`
+* add `"hubot-reviewer-queue"` to your `external-scripts.json`
 * set the following env vars on heroku
   <table>
       <tr>
