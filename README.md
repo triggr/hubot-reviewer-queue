@@ -42,7 +42,23 @@ members of this organization are candidate reviewers.
           <th>`HUBOT_REVIEWER_DEBUG`</th>
           <td>optional. turns off live Github API requests.</td>
       </tr>
-  </table>
+      <tr>
+          <th>`GOOGLE_CLIENT_ID`</th>
+          <td>Authentication client id for Google Calendar integration.</td>
+      </tr>
+      <tr>
+          <th>`GOOGLE_CLIENT_SECRET`</th>
+          <td>Authentication secret key for Google Calendar integration.</td>
+      </tr>
+      <tr>
+          <th>`GOOGLE_REFRESH_TOKEN`</th>
+          <td>Refresh token to retrieve authentication access token for Google Calendar integration.</td>
+      </tr>
+      <tr>
+          <th>`GOOGLE_REDIRECT_URI`</th>
+          <td>Redirection location for successful authentication for Google Calendar integration.</td>
+      </tr>
+</table>
 
 # usage
 * `hubot reviewer for <repo> <pull>`
