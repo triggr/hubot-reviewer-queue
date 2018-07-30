@@ -20,7 +20,7 @@ members of this organization are candidate reviewers.
 * install this npm package to your hubot repo
     * `npm i --save hubot-reviewer-queue`
 * add `"hubot-reviewer-queue"` to your `external-scripts.json`
-* set the following env vars on heroku
+* set the following env vars
   <table>
       <tr>
           <th>`HUBOT_GITHUB_TOKEN`</th>
@@ -38,27 +38,16 @@ members of this organization are candidate reviewers.
           <th>`HUBOT_GITHUB_WITH_AVATAR`</th>
           <td>optional. assignee's avatar image will be posted if this var is set to "1".</td>
       </tr>
+      <tr>
+          <th>`HUBOT_REVIEWER_DEBUG`</th>
+          <td>optional. turns off live Github API requests.</td>
+      </tr>
   </table>
 
 # usage
 * `hubot reviewer for <repo> <pull>`
-* e.g. `hubot reviewer for our-webapp 345`
-
-## example
-
-on hipchat
-
-![image](https://cloud.githubusercontent.com/assets/81522/3103001/1085dc68-e64f-11e3-8b17-c8a0741c1b51.png)
-
-on github
-
-![image](https://cloud.githubusercontent.com/assets/81522/3102996/f5d1364c-e64e-11e3-8af7-297c10d92208.png)
-
+* e.g. `hubot reviewer for repo_name 100`
 
 # get involved
 
-1. fork it ( https://github.com/triggr/hubot-reviewer-queue/fork )
-2. create your feature branch (`git checkout -b my-new-feature`)
-3. commit your changes (`git commit -am 'Add some feature'`)
-4. push to the branch (`git push origin my-new-feature`)
-5. create new pull request
+See above link for original repository and author. This project is not actively looking for contributors.
