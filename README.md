@@ -35,7 +35,7 @@ members of this organization are candidate reviewers.
           <td>required. the reviewer team id you created above.</td>
       </tr>
       <tr>
-          <th>`HUBOT_GITHUB_REVIEWER_MAIL_MAP`</th>
+          <th>`HUBOT_GITHUB_REVIEWER_EMAIL_MAP`</th>
           <td>JSON object with emails as keys and Github usernames as values.</td>
       </tr>
       <tr>
