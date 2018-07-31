@@ -62,6 +62,10 @@ members of this organization are candidate reviewers.
           <th>`GOOGLE_REDIRECT_URI`</th>
           <td>Redirection location for successful authentication for Google Calendar integration.</td>
       </tr>
+      <tr>
+          <th>`GOOGLE_TRAVEL_CALENDAR_ID`</th>
+          <td>Google Calendar id with events listing OOO.</td>
+      </tr>
 </table>
 
 # usage
