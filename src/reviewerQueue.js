@@ -36,7 +36,7 @@ ${__filename}
 HUBOT_GITHUB_TOKEN: ${ghToken}
 HUBOT_GITHUB_ORG: ${ghOrg}
 HUBOT_GITHUB_REVIEWER_TEAM: ${ghReviwerTeam}
-HUBOT_GITHUB_REVIEWER_MAIL_MAP: ${ghReviewerEmailMap}\
+HUBOT_GITHUB_REVIEWER_EMAIL_MAP: ${ghReviewerEmailMap}\
 `);
   }
 
