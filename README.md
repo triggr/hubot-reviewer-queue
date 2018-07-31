@@ -35,6 +35,10 @@ members of this organization are candidate reviewers.
           <td>required. the reviewer team id you created above.</td>
       </tr>
       <tr>
+          <th>`HUBOT_GITHUB_REVIEWER_MAIL_MAP`</th>
+          <td>JSON object with emails as keys and Github usernames as values.</td>
+      </tr>
+      <tr>
           <th>`HUBOT_GITHUB_WITH_AVATAR`</th>
           <td>optional. assignee's avatar image will be posted if this var is set to "1".</td>
       </tr>
