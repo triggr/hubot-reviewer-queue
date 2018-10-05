@@ -113,7 +113,9 @@ HUBOT_GITHUB_REVIEWER_EMAIL_MAP: ${ghReviewerEmailMap}\
     let reviewerEmailMap = JSON.parse(ghReviewerEmailMap);
     for (let event of travelEvents) {
       let reviewerLogin = reviewerEmailMap[event.creator.email];
-      reviewersOnVacation[reviewerLogin] = true;
+      if (event.summary.match(/(ooo|vacation)/i)) {
+        reviewersOnVacation[reviewerLogin] = true;
+      }
     }
 
     // pick reviewer
