@@ -125,6 +125,11 @@ HUBOT_GITHUB_REVIEWER_EMAIL_MAP: ${ghReviewerEmailMap}\
       reviewers = reviewers.filter((r) => r.login !== assignee.login);
     }
 
+    if (reviewers.length === 0) {
+      msg.reply('No available reviewers, sorry!');
+      return;
+    }
+
     // pick first reviewer from the queue
     const newReviewer = reviewers[0];
     robot.logger.info(`Choose from queue: ${newReviewer.login}`);
