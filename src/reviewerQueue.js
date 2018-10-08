@@ -113,7 +113,9 @@ HUBOT_GITHUB_REVIEWER_EMAIL_MAP: ${ghReviewerEmailMap}\
     let reviewerEmailMap = JSON.parse(ghReviewerEmailMap);
     for (let event of travelEvents) {
       let reviewerLogin = reviewerEmailMap[event.creator.email];
-      reviewersOnVacation[reviewerLogin] = true;
+      if (event.summary.match(/(ooo|vacation)/i)) {
+        reviewersOnVacation[reviewerLogin] = true;
+      }
     }
 
     // pick reviewer
@@ -123,6 +125,11 @@ HUBOT_GITHUB_REVIEWER_EMAIL_MAP: ${ghReviewerEmailMap}\
     // exclude current assignee from reviewer candidates
     if (assignee !== null) {
       reviewers = reviewers.filter((r) => r.login !== assignee.login);
+    }
+
+    if (reviewers.length === 0) {
+      msg.reply('No available reviewers, sorry!');
+      return;
     }
 
     // pick first reviewer from the queue
