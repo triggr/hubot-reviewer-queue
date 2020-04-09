@@ -133,7 +133,7 @@ HUBOT_GITHUB_REVIEWER_EMAIL_MAP: ${ghReviewerEmailMap}\
       return;
     }
 
-    robot.logger.debug(`Eligible reviewer queue: ${reviewers.map((r) => r.login}`);
+    robot.logger.debug(`Eligible reviewer queue: ${reviewers.map((r) => r.login)}`);
     // pick first reviewer from the queue
     const newReviewer = reviewers[0];
     robot.logger.info(`Choose from queue: ${newReviewer.login}`);
