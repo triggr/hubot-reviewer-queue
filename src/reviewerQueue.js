@@ -111,21 +111,21 @@ HUBOT_GITHUB_REVIEWER_TEAM: ${ghReviwerTeam}\
     // pick reviewer
     reviewers = stats.reviewers;
     reviewers = reviewers.filter((r) => r.login !== creator.login);
-    
+
     // exclude current assignee from reviewer candidates
     if (assignee !== null) {
       reviewers = reviewers.filter((r) => r.login !== assignee.login);
     }
 
     // exclude shadows from reviewer candidates
-    let reviewer_shadows = new Set();
+    let reviewerShadows = new Set();
     for (let reviewer in shadows) {
       for (let shadow of shadows[reviewer]) {
-        reviewer_shadows.add(shadow);
+        reviewerShadows.add(shadow);
       }
     }
 
-    reviewers = reviewers.filter((r) => !reviewer_shadows.has(r.login));
+    reviewers = reviewers.filter((r) => !reviewerShadows.has(r.login));
 
     if (reviewers.length === 0) {
       msg.reply('No available reviewers, sorry!');
@@ -158,17 +158,17 @@ HUBOT_GITHUB_REVIEWER_TEAM: ${ghReviwerTeam}\
     robot.logger.info(`Would have assigned ${reviewer.login}`);
 
     // get reviewer shadows
-    let req_reviewers = [reviewer.login];
+    let reqReviewers = [reviewer.login];
     if (shadows[reviewer.login]) {
       for (let shadow of shadows[reviewer.login]) {
         if (shadow === creator.login) { continue; }
-        req_reviewers.push(shadow);
+        reqReviewers.push(shadow);
         robot.logger.info(`Adding ${shadow} as shadow.`);
       }
     }
 
     // request a review
-    await octokit.rest.pulls.requestReviewers(_.extend({reviewers: req_reviewers}, prParams));
+    await octokit.rest.pulls.requestReviewers(_.extend({reviewers: reqReviewers}, prParams));
     robot.logger.debug(`Would have requested a review from ${reviewer.login}`);
 
     msg.reply(`${reviewer.login} has been assigned for ${issue.html_url} as a reviewer`);
