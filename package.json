@@ -8,14 +8,13 @@
     "hubot-scripts"
   ],
   "license": "MIT",
-  "main": "index.coffee",
+  "main": "index.js",
   "repository": {
     "type": "git",
     "url": "git://github.com/triggr/hubot-reviewer-queue.git"
   },
   "dependencies": {
-    "github": "7.2.0",
-    "googleapis": "27.0.0",
+    "@octokit/rest": "^18.12.0",
     "lodash": "4.17.5"
   },
   "devDependencies": {
