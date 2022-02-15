@@ -17,8 +17,8 @@ members of this organization are candidate reviewers.
 * select scopes: `repo` & `public_repo` & `read:org`
 
 # installation
-* install this package to your hubot repo
-    * copy this repo and paste it into your hubot repo's node_modules folder as `hubot-reviewer-queue`
+* install this npm package to your hubot repo
+    * `npm i --save hubot-reviewer-queue`
 * add `"hubot-reviewer-queue"` to your `external-scripts.json`
 * set the following env vars
   <table>
