@@ -8,6 +8,7 @@
 //     github team id. this script picks the next eligible reviewer off a queue
 //   HUBOT_REVIEWER_SHADOWS (optional)
 //     map of reviewer github logins to reviewer shadow logins
+//     Ex. { 'joshgachnang': ['brycefarnsworth'] }
 //
 // Commands:
 //   hubot reviewer for <repo> <pull> - assigns the next reviewer for pull request
