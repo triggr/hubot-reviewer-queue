@@ -6,7 +6,7 @@
 //   HUBOT_GITHUB_ORG (required)
 //   HUBOT_GITHUB_REVIEWER_TEAM (required)
 //     github team id. this script picks the next eligible reviewer off a queue
-//   HUBOT_REVIEWER_SHADOWS (required)
+//   HUBOT_REVIEWER_SHADOWS (optional)
 //     map of reviewer github logins to reviewer shadow logins
 //
 // Commands:
