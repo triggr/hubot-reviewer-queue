@@ -35,6 +35,10 @@ members of this organization are candidate reviewers.
           <td>required. name of the reviewer team you created above.</td>
       </tr>
       <tr>
+          <th>`HUBOT_REVIEWER_SHADOWS`</th>
+          <td>optional. map of reviewer github login to reviewer shadows.
+      </tr>
+      <tr>
           <th>`HUBOT_GITHUB_WITH_AVATAR`</th>
           <td>optional. assignee's avatar image will be posted if this var is set to "1".</td>
       </tr>

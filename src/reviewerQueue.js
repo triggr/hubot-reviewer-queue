@@ -6,6 +6,8 @@
 //   HUBOT_GITHUB_ORG (required)
 //   HUBOT_GITHUB_REVIEWER_TEAM (required)
 //     github team id. this script picks the next eligible reviewer off a queue
+//   HUBOT_REVIEWER_SHADOWS (required)
+//     map of reviewer github logins to reviewer shadow logins
 //
 // Commands:
 //   hubot reviewer for <repo> <pull> - assigns the next reviewer for pull request
@@ -17,12 +19,12 @@
 
 const _ = require('lodash');
 const {Octokit} = require('@octokit/rest');
-const shadows = require('./shadows');
 
 module.exports = function(robot) {
   const ghToken = process.env.HUBOT_GITHUB_TOKEN;
   const ghOrg = process.env.HUBOT_GITHUB_ORG;
   const ghReviwerTeam = process.env.HUBOT_GITHUB_REVIEWER_TEAM;
+  const reviewerShadowsMap = process.env.HUBOT_REVIEWER_SHADOWS ? process.HUBOT_REVIEWER_SHADOWS : '{}';
   const ghWithAvatar = ['1', 'true'].includes(process.env.HUBOT_GITHUB_WITH_AVATAR);
   const debug = ['1', 'true'].includes(process.env.HUBOT_REVIEWER_QUEUE_DEBUG);
 
@@ -118,14 +120,15 @@ HUBOT_GITHUB_REVIEWER_TEAM: ${ghReviwerTeam}\
     }
 
     // exclude shadows from reviewer candidates
-    let reviewerShadows = new Set();
+    let shadowsSet = new Set();
+    let shadows = JSON.parse(reviewerShadowsMap);
     for (let reviewer in shadows) {
       for (let shadow of shadows[reviewer]) {
-        reviewerShadows.add(shadow);
+        shadowsSet.add(shadow);
       }
     }
 
-    reviewers = reviewers.filter((r) => !reviewerShadows.has(r.login));
+    reviewers = reviewers.filter((r) => !shadowsSet.has(r.login));
 
     if (reviewers.length === 0) {
       msg.reply('No available reviewers, sorry!');
