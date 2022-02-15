@@ -6,6 +6,9 @@
 //   HUBOT_GITHUB_ORG (required)
 //   HUBOT_GITHUB_REVIEWER_TEAM (required)
 //     github team id. this script picks the next eligible reviewer off a queue
+//   HUBOT_REVIEWER_SHADOWS (optional)
+//     map of reviewer github logins to reviewer shadow logins
+//     Ex. { 'joshgachnang': ['brycefarnsworth'] }
 //
 // Commands:
 //   hubot reviewer for <repo> <pull> - assigns the next reviewer for pull request
@@ -16,27 +19,25 @@
 //   pcsforeducation
 
 const _ = require('lodash');
-const GitHubApi = require('github');
-const {fetchTravelEvents} = require('./lib/googleCalendar');
+const {Octokit} = require('@octokit/rest');
 
 module.exports = function(robot) {
   const ghToken = process.env.HUBOT_GITHUB_TOKEN;
   const ghOrg = process.env.HUBOT_GITHUB_ORG;
   const ghReviwerTeam = process.env.HUBOT_GITHUB_REVIEWER_TEAM;
-  const ghReviewerEmailMap = process.env.HUBOT_GITHUB_REVIEWER_EMAIL_MAP;
+  const reviewerShadowsMap = process.env.HUBOT_REVIEWER_SHADOWS ? process.HUBOT_REVIEWER_SHADOWS : '{}';
   const ghWithAvatar = ['1', 'true'].includes(process.env.HUBOT_GITHUB_WITH_AVATAR);
-  const debug = ['1', 'true'].includes(process.env.HUBOT_REVIEWER_LOTTO_DEBUG);
+  const debug = ['1', 'true'].includes(process.env.HUBOT_REVIEWER_QUEUE_DEBUG);
 
   const STATS_KEY = 'reviewer-round-robin';
 
-  if (ghToken === null || ghOrg === null || ghReviwerTeam === null || ghReviewerEmailMap === null) {
+  if (ghToken === null || ghOrg === null || ghReviwerTeam === null) {
     return robot.logger.error(`\
-reviewer-lottery is not loaded due to missing configuration!
+reviewer-queue is not loaded due to missing configuration!
 ${__filename}
 HUBOT_GITHUB_TOKEN: ${ghToken}
 HUBOT_GITHUB_ORG: ${ghOrg}
-HUBOT_GITHUB_REVIEWER_TEAM: ${ghReviwerTeam}
-HUBOT_GITHUB_REVIEWER_EMAIL_MAP: ${ghReviewerEmailMap}\
+HUBOT_GITHUB_REVIEWER_TEAM: ${ghReviwerTeam}\
 `);
   }
 
@@ -51,10 +52,12 @@ HUBOT_GITHUB_REVIEWER_EMAIL_MAP: ${ghReviewerEmailMap}\
     const msgs = ['login, percentage, num assigned'];
     let total = 0;
     for (let login in stats) {
+      if (login === 'reviewers') { continue; }
       count = stats[login];
       total += count;
     }
     for (let login in stats) {
+      if (login === 'reviewers') { continue; }
       count = stats[login];
       const percentage = Math.floor(count * 100.0 / total);
       msgs.push(`${login}, ${percentage}%, ${count}`);
@@ -68,33 +71,32 @@ HUBOT_GITHUB_REVIEWER_EMAIL_MAP: ${ghReviewerEmailMap}\
     const prParams = {
       owner: ghOrg,
       repo,
-      number: pr,
+      issue_number: pr,
+      pull_number: pr,
     };
 
-    const gh = new GitHubApi({version: '3.0.0'});
-    gh.authenticate({type: 'oauth', token: ghToken});
+    const octokit = new Octokit({auth: ghToken});
 
     // mock api if debug mode
     if (debug) {
-      gh.issues.createComment = function(params, cb) {
+      octokit.rest.issues.createComment = function(params, cb) {
         robot.logger.info('GitHubApi - createComment is called', params);
         return cb(null);
       };
-      gh.issues.edit = function(params, cb) {
+      octokit.rest.issues.update = function(params, cb) {
         robot.logger.info('GitHubApi - edit is called', params);
         return cb(null);
       };
     }
 
-    let [reviewers, issue, travelEvents] = await Promise.all([
-      gh.orgs.getTeamMembers({
-        id: ghReviwerTeam,
+    let [{data: reviewers}, {data: issue}] = await Promise.all([
+      octokit.rest.teams.listMembersInOrg({
+        org: ghOrg,
+        team_slug: ghReviwerTeam,
         per_page: 100,
       }),
-      gh.pullRequests.get(prParams),
-      fetchTravelEvents(robot),
+      octokit.rest.issues.get(prParams),
     ]);
-    robot.logger.info(`Fetched ${travelEvents.length} travel events`);
     let creator = issue.user;
     let assignee = issue.assignee;
 
@@ -109,24 +111,25 @@ HUBOT_GITHUB_REVIEWER_EMAIL_MAP: ${ghReviewerEmailMap}\
       stats.reviewers = reviewers;
     }
 
-    let reviewersOnVacation = {};
-    let reviewerEmailMap = JSON.parse(ghReviewerEmailMap);
-    for (let event of travelEvents) {
-      let reviewerLogin = reviewerEmailMap[event.creator.email];
-      if (event.summary.match(/(ooo|vacation)/i)) {
-        reviewersOnVacation[reviewerLogin] = true;
-        robot.logger.debug(`${reviewerLogin} is ooo`);
-      }
-    }
-
     // pick reviewer
     reviewers = stats.reviewers;
-    reviewers = reviewers.filter((r) => r.login !== creator.login && !reviewersOnVacation[r.login]);
+    reviewers = reviewers.filter((r) => r.login !== creator.login);
 
     // exclude current assignee from reviewer candidates
     if (assignee !== null) {
       reviewers = reviewers.filter((r) => r.login !== assignee.login);
     }
+
+    // exclude shadows from reviewer candidates
+    let shadowsSet = new Set();
+    let shadows = JSON.parse(reviewerShadowsMap);
+    for (let reviewer in shadows) {
+      for (let shadow of shadows[reviewer]) {
+        shadowsSet.add(shadow);
+      }
+    }
+
+    reviewers = reviewers.filter((r) => !shadowsSet.has(r.login));
 
     if (reviewers.length === 0) {
       msg.reply('No available reviewers, sorry!');
@@ -155,11 +158,21 @@ HUBOT_GITHUB_REVIEWER_EMAIL_MAP: ${ghReviewerEmailMap}\
     let reviewer = newReviewer;
 
     // change assignee
-    await gh.issues.edit(_.extend({assignee: reviewer.login}, prParams));
+    await octokit.rest.issues.update(_.extend({assignee: reviewer.login}, prParams));
     robot.logger.info(`Would have assigned ${reviewer.login}`);
 
+    // get reviewer shadows
+    let reqReviewers = [reviewer.login];
+    if (shadows[reviewer.login]) {
+      for (let shadow of shadows[reviewer.login]) {
+        if (shadow === creator.login) { continue; }
+        reqReviewers.push(shadow);
+        robot.logger.info(`Adding ${shadow} as shadow.`);
+      }
+    }
+
     // request a review
-    await gh.pullRequests.createReviewRequest(_.extend({reviewers: [reviewer.login]}, prParams));
+    await octokit.rest.pulls.requestReviewers(_.extend({reviewers: reqReviewers}, prParams));
     robot.logger.debug(`Would have requested a review from ${reviewer.login}`);
 
     msg.reply(`${reviewer.login} has been assigned for ${issue.html_url} as a reviewer`);

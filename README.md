@@ -1,5 +1,5 @@
 # hubot-reviewer-queue
-Hubot assigns a reviews in a round robin fashion.
+Hubot assigns reviewers in round robin fashion.
 
 Based on https://github.com/sakatam/hubot-reviewer-lotto.
 
@@ -32,11 +32,11 @@ members of this organization are candidate reviewers.
       </tr>
       <tr>
           <th>`HUBOT_GITHUB_REVIEWER_TEAM`</th>
-          <td>required. the reviewer team id you created above.</td>
+          <td>required. name of the reviewer team you created above.</td>
       </tr>
       <tr>
-          <th>`HUBOT_GITHUB_REVIEWER_EMAIL_MAP`</th>
-          <td>JSON object with emails as keys and Github usernames as values.</td>
+          <th>`HUBOT_REVIEWER_SHADOWS`</th>
+          <td>optional. map of reviewer github login to reviewer shadows.
       </tr>
       <tr>
           <th>`HUBOT_GITHUB_WITH_AVATAR`</th>
@@ -45,26 +45,6 @@ members of this organization are candidate reviewers.
       <tr>
           <th>`HUBOT_REVIEWER_DEBUG`</th>
           <td>optional. turns off live Github API requests.</td>
-      </tr>
-      <tr>
-          <th>`GOOGLE_CLIENT_ID`</th>
-          <td>Authentication client id for Google Calendar integration.</td>
-      </tr>
-      <tr>
-          <th>`GOOGLE_CLIENT_SECRET`</th>
-          <td>Authentication secret key for Google Calendar integration.</td>
-      </tr>
-      <tr>
-          <th>`GOOGLE_REFRESH_TOKEN`</th>
-          <td>Refresh token to retrieve authentication access token for Google Calendar integration.</td>
-      </tr>
-      <tr>
-          <th>`GOOGLE_REDIRECT_URI`</th>
-          <td>Redirection location for successful authentication for Google Calendar integration.</td>
-      </tr>
-      <tr>
-          <th>`GOOGLE_TRAVEL_CALENDAR_ID`</th>
-          <td>Google Calendar id with events listing OOO.</td>
       </tr>
 </table>
 
