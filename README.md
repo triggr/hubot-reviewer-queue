@@ -35,7 +35,7 @@ members of this organization are candidate reviewers.
           <td>required. name of the reviewer team you created above.</td>
       </tr>
       <tr>
-          <th>`HUBOT_REVIEWER_SHADOWS`</th>
+          <th>`HUBOT_GITHUB_REVIEWER_SHADOWS`</th>
           <td>optional. map of reviewer github login to reviewer shadows.
       </tr>
       <tr>

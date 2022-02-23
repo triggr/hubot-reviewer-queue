@@ -6,7 +6,7 @@
 //   HUBOT_GITHUB_ORG (required)
 //   HUBOT_GITHUB_REVIEWER_TEAM (required)
 //     github team id. this script picks the next eligible reviewer off a queue
-//   HUBOT_REVIEWER_SHADOWS (optional)
+//   HUBOT_GITHUB_REVIEWER_SHADOWS (optional)
 //     map of reviewer github logins to reviewer shadow logins
 //     Ex. { 'joshgachnang': ['brycefarnsworth'] }
 //
@@ -24,20 +24,20 @@ const {Octokit} = require('@octokit/rest');
 module.exports = function(robot) {
   const ghToken = process.env.HUBOT_GITHUB_TOKEN;
   const ghOrg = process.env.HUBOT_GITHUB_ORG;
-  const ghReviwerTeam = process.env.HUBOT_GITHUB_REVIEWER_TEAM;
-  const reviewerShadowsMap = process.env.HUBOT_REVIEWER_SHADOWS ? process.HUBOT_REVIEWER_SHADOWS : '{}';
+  const ghReviewerTeam = process.env.HUBOT_GITHUB_REVIEWER_TEAM;
+  const reviewerShadowsMap = process.env.HUBOT_GITHUB_REVIEWER_SHADOWS ? process.env.HUBOT_REVIEWER_SHADOWS : '{}';
   const ghWithAvatar = ['1', 'true'].includes(process.env.HUBOT_GITHUB_WITH_AVATAR);
   const debug = ['1', 'true'].includes(process.env.HUBOT_REVIEWER_QUEUE_DEBUG);
 
   const STATS_KEY = 'reviewer-round-robin';
 
-  if (ghToken === null || ghOrg === null || ghReviwerTeam === null) {
+  if (ghToken === null || ghOrg === null || ghReviewerTeam === null) {
     return robot.logger.error(`\
 reviewer-queue is not loaded due to missing configuration!
 ${__filename}
 HUBOT_GITHUB_TOKEN: ${ghToken}
 HUBOT_GITHUB_ORG: ${ghOrg}
-HUBOT_GITHUB_REVIEWER_TEAM: ${ghReviwerTeam}\
+HUBOT_GITHUB_REVIEWER_TEAM: ${ghReviewerTeam}\
 `);
   }
 
@@ -92,7 +92,7 @@ HUBOT_GITHUB_REVIEWER_TEAM: ${ghReviwerTeam}\
     let [{data: reviewers}, {data: issue}] = await Promise.all([
       octokit.rest.teams.listMembersInOrg({
         org: ghOrg,
-        team_slug: ghReviwerTeam,
+        team_slug: ghReviewerTeam,
         per_page: 100,
       }),
       octokit.rest.issues.get(prParams),
