@@ -25,7 +25,7 @@ module.exports = function(robot) {
   const ghToken = process.env.HUBOT_GITHUB_TOKEN;
   const ghOrg = process.env.HUBOT_GITHUB_ORG;
   const ghReviewerTeam = process.env.HUBOT_GITHUB_REVIEWER_TEAM;
-  const reviewerShadowsMap = process.env.HUBOT_GITHUB_REVIEWER_SHADOWS ? process.env.HUBOT_REVIEWER_SHADOWS : '{}';
+  const reviewerShadowsMap = process.env.HUBOT_GITHUB_REVIEWER_SHADOWS ? process.env.HUBOT_GITHUB_REVIEWER_SHADOWS : '{}';
   const ghWithAvatar = ['1', 'true'].includes(process.env.HUBOT_GITHUB_WITH_AVATAR);
   const debug = ['1', 'true'].includes(process.env.HUBOT_REVIEWER_QUEUE_DEBUG);
 
