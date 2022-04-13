@@ -120,17 +120,6 @@ HUBOT_GITHUB_REVIEWER_TEAM: ${ghReviewerTeam}\
       reviewers = reviewers.filter((r) => r.login !== assignee.login);
     }
 
-    // exclude shadows from reviewer candidates
-    let shadowsSet = new Set();
-    let shadows = JSON.parse(reviewerShadowsMap);
-    for (let reviewer in shadows) {
-      for (let shadow of shadows[reviewer]) {
-        shadowsSet.add(shadow);
-      }
-    }
-
-    reviewers = reviewers.filter((r) => !shadowsSet.has(r.login));
-
     if (reviewers.length === 0) {
       msg.reply('No available reviewers, sorry!');
       return;
@@ -163,6 +152,7 @@ HUBOT_GITHUB_REVIEWER_TEAM: ${ghReviewerTeam}\
 
     // get reviewer shadows
     let reqReviewers = [reviewer.login];
+    const shadows = JSON.parse(reviewerShadowsMap);
     if (shadows[reviewer.login]) {
       for (let shadow of shadows[reviewer.login]) {
         if (shadow === creator.login) { continue; }
