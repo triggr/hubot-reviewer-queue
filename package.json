@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@octokit/rest": "^18.12.0",
-    "lodash": "4.17.5"
+    "lodash": "4.17.21"
   },
   "devDependencies": {
     "eslint": "6.8.0",
